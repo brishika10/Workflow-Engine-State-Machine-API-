@@ -1,0 +1,298 @@
+### Create a simple approval workflow
+POST http://localhost:5000/api/workflows
+Content-Type: application/json
+
+{
+  "id": "approval-workflow",
+  "name": "Simple Approval Workflow",
+  "description": "Basic approval process",
+  "states": [
+    {
+      "id": "draft",
+      "name": "Draft",
+      "isInitial": true,
+      "isFinal": false,
+      "enabled": true,
+      "description": "Initial draft state"
+    },
+    {
+      "id": "pending",
+      "name": "Pending Approval",
+      "isInitial": false,
+      "isFinal": false,
+      "enabled": true,
+      "description": "Waiting for approval"
+    },
+    {
+      "id": "approved",
+      "name": "Approved",
+      "isInitial": false,
+      "isFinal": true,
+      "enabled": true,
+      "description": "Approved and completed"
+    },
+    {
+      "id": "rejected",
+      "name": "Rejected",
+      "isInitial": false,
+      "isFinal": true,
+      "enabled": true,
+      "description": "Rejected and closed"
+    }
+  ],
+  "actions": [
+    {
+      "id": "submit",
+      "name": "Submit for Approval",
+      "enabled": true,
+      "fromStates": ["draft"],
+      "toState": "pending",
+      "description": "Submit document for approval"
+    },
+    {
+      "id": "approve",
+      "name": "Approve",
+      "enabled": true,
+      "fromStates": ["pending"],
+      "toState": "approved",
+      "description": "Approve the document"
+    },
+    {
+      "id": "reject",
+      "name": "Reject",
+      "enabled": true,
+      "fromStates": ["pending"],
+      "toState": "rejected",
+      "description": "Reject the document"
+    }
+  ]
+}
+
+### Get all workflow definitions
+GET http://localhost:5000/api/workflows
+
+### Get specific workflow definition
+GET http://localhost:5000/api/workflows/approval-workflow
+
+### Start a workflow instance
+POST http://localhost:5000/api/workflows/approval-workflow/instances
+
+### Get all workflow instances
+GET http://localhost:5000/api/instances
+
+### Get specific workflow instance (replace {instanceId} with actual ID)
+GET http://localhost:5000/api/instances/{instanceId}
+
+### Execute submit action (replace {instanceId} with actual ID)
+POST http://localhost:5000/api/instances/{instanceId}/actions/submit
+
+### Execute approve action (replace {instanceId} with actual ID)
+POST http://localhost:5000/api/instances/{instanceId}/actions/approve
+
+### Try to execute invalid action (should fail)
+POST http://localhost:5000/api/instances/{instanceId}/actions/invalid-action
+
+### Create order processing workflow
+POST http://localhost:5000/api/workflows
+Content-Type: application/json
+
+{
+  "id": "order-processing",
+  "name": "Order Processing Workflow",
+  "description": "Complete order lifecycle management",
+  "states": [
+    {
+      "id": "created",
+      "name": "Order Created",
+      "isInitial": true,
+      "isFinal": false,
+      "enabled": true
+    },
+    {
+      "id": "validated",
+      "name": "Order Validated",
+      "isInitial": false,
+      "isFinal": false,
+      "enabled": true
+    },
+    {
+      "id": "processing",
+      "name": "Processing",
+      "isInitial": false,
+      "isFinal": false,
+      "enabled": true
+    },
+    {
+      "id": "shipped",
+      "name": "Shipped",
+      "isInitial": false,
+      "isFinal": false,
+      "enabled": true
+    },
+    {
+      "id": "delivered",
+      "name": "Delivered",
+      "isInitial": false,
+      "isFinal": true,
+      "enabled": true
+    },
+    {
+      "id": "cancelled",
+      "name": "Cancelled",
+      "isInitial": false,
+      "isFinal": true,
+      "enabled": true
+    }
+  ],
+  "actions": [
+    {
+      "id": "validate",
+      "name": "Validate Order",
+      "enabled": true,
+      "fromStates": ["created"],
+      "toState": "validated"
+    },
+    {
+      "id": "process",
+      "name": "Start Processing",
+      "enabled": true,
+      "fromStates": ["validated"],
+      "toState": "processing"
+    },
+    {
+      "id": "ship",
+      "name": "Ship Order",
+      "enabled": true,
+      "fromStates": ["processing"],
+      "toState": "shipped"
+    },
+    {
+      "id": "deliver",
+      "name": "Mark as Delivered",
+      "enabled": true,
+      "fromStates": ["shipped"],
+      "toState": "delivered"
+    },
+    {
+      "id": "cancel",
+      "name": "Cancel Order",
+      "enabled": true,
+      "fromStates": ["created", "validated"],
+      "toState": "cancelled"
+    }
+  ]
+}
+
+### Test validation errors
+
+### Try to create workflow with duplicate state IDs (should fail)
+POST http://localhost:5000/api/workflows
+Content-Type: application/json
+
+{
+  "id": "invalid-workflow",
+  "name": "Invalid Workflow",
+  "states": [
+    {
+      "id": "state1",
+      "name": "State 1",
+      "isInitial": true,
+      "isFinal": false,
+      "enabled": true
+    },
+    {
+      "id": "state1",
+      "name": "Duplicate State",
+      "isInitial": false,
+      "isFinal": true,
+      "enabled": true
+    }
+  ],
+  "actions": []
+}
+
+### Try to create workflow with no initial state (should fail)
+POST http://localhost:5000/api/workflows
+Content-Type: application/json
+
+{
+  "id": "no-initial-workflow",
+  "name": "No Initial State Workflow",
+  "states": [
+    {
+      "id": "state1",
+      "name": "State 1",
+      "isInitial": false,
+      "isFinal": false,
+      "enabled": true
+    },
+    {
+      "id": "state2",
+      "name": "State 2",
+      "isInitial": false,
+      "isFinal": true,
+      "enabled": true
+    }
+  ],
+  "actions": []
+}
+
+### Try to create workflow with multiple initial states (should fail)
+POST http://localhost:5000/api/workflows
+Content-Type: application/json
+
+{
+  "id": "multiple-initial-workflow",
+  "name": "Multiple Initial States Workflow",
+  "states": [
+    {
+      "id": "state1",
+      "name": "State 1",
+      "isInitial": true,
+      "isFinal": false,
+      "enabled": true
+    },
+    {
+      "id": "state2",
+      "name": "State 2",
+      "isInitial": true,
+      "isFinal": true,
+      "enabled": true
+    }
+  ],
+  "actions": []
+}
+
+### Try to create workflow with action referencing non-existent state (should fail)
+POST http://localhost:5000/api/workflows
+Content-Type: application/json
+
+{
+  "id": "invalid-action-workflow",
+  "name": "Invalid Action Workflow",
+  "states": [
+    {
+      "id": "start",
+      "name": "Start",
+      "isInitial": true,
+      "isFinal": false,
+      "enabled": true
+    },
+    {
+      "id": "end",
+      "name": "End",
+      "isInitial": false,
+      "isFinal": true,
+      "enabled": true
+    }
+  ],
+  "actions": [
+    {
+      "id": "invalid-action",
+      "name": "Invalid Action",
+      "enabled": true,
+      "fromStates": ["start"],
+      "toState": "non-existent-state"
+    }
+  ]
+}
